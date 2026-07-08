@@ -8,7 +8,7 @@ public class ClassAnalyzer
 
     public ClassAnalyzer(Type type)
     {
-        _type = type;
+        _type = type ?? throw new ArgumentNullException(nameof(type));
     }
 
     public IEnumerable<string> GetPublicMethods()
@@ -24,6 +24,9 @@ public class ClassAnalyzer
         const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
         var method = _type.GetMethods(flags)
                           .FirstOrDefault(m => m.Name == methodName && !m.IsSpecialName);
+
+        if (method == null)
+            return Enumerable.Empty<string>();
 
         var result = new List<string>
         {
@@ -50,6 +53,6 @@ public class ClassAnalyzer
 
     public bool HasAttribute<T>() where T : Attribute
     {
-        return _type.GetCustomAttributes(typeof(T), inherit: true).Any();
+        return _type.IsDefined(typeof(T), inherit: true);
     }
 }

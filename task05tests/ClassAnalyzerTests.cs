@@ -6,7 +6,11 @@ using task05;
 public class TestClass
 {
     public int PublicField;
-    private string _privateField;
+
+    #pragma warning disable CS0169
+    private string _privateField = string.Empty;
+    #pragma warning restore CS0169
+
     public int Property { get; set; }
 
     public void Method() { }
