@@ -68,4 +68,37 @@ public class ClassAnalyzerTests
         Assert.Equal("System.Int32 a", methodParams[1]);
         Assert.Equal("System.Int32 b", methodParams[2]);
     }
+
+    [Fact]
+    public void Constructor_NullType_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => new ClassAnalyzer(null!));
+    }
+    
+    [Fact]
+    public void GetMethodParams_NonExistentMethod_ReturnsEmpty()
+    {
+        var analyzer = new ClassAnalyzer(typeof(TestClass));
+        var result = analyzer.GetMethodParams("NonExistentMethod").ToList();
+        
+        Assert.Empty(result);
+    }
+    
+    [Fact]
+    public void GetMethodParams_MethodWithoutParameters_ReturnsOnlyReturnType()
+    {
+        var analyzer = new ClassAnalyzer(typeof(TestClass));
+        var result = analyzer.GetMethodParams("Method").ToList();
+        
+        Assert.Single(result);
+        Assert.Equal("System.Void", result[0]);
+    }
+    
+    [Fact]
+    public void HasAttribute_NoAttribute_ReturnsFalse()
+    {
+        var analyzer = new ClassAnalyzer(typeof(TestClass));
+        
+        Assert.False(analyzer.HasAttribute<SerializableAttribute>());
+    }
 }
