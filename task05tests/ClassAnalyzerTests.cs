@@ -1,0 +1,104 @@
+﻿namespace task05tests;
+
+using Xunit;
+using task05;
+
+public class TestClass
+{
+    public int PublicField;
+
+    #pragma warning disable CS0169
+    private string _privateField = string.Empty;
+    #pragma warning restore CS0169
+
+    public int Property { get; set; }
+
+    public void Method() { }
+    public int Add(int a, int b) => a + b;
+}
+
+[Serializable]
+public class AttributedClass { }
+
+public class ClassAnalyzerTests
+{
+    [Fact]
+    public void GetPublicMethods_ReturnsCorrectMethods()
+    {
+        var analyzer = new ClassAnalyzer(typeof(TestClass));
+        var methods = analyzer.GetPublicMethods();
+
+        Assert.Contains("Method", methods);
+    }
+
+    [Fact]
+    public void GetAllFields_IncludesPrivateFields()
+    {
+        var analyzer = new ClassAnalyzer(typeof(TestClass));
+        var fields = analyzer.GetAllFields();
+
+        Assert.Contains("_privateField", fields);
+    }
+
+    [Fact]
+    public void GetProperties_ReturnsPublicProperties()
+    {
+        var analyzer = new ClassAnalyzer(typeof(TestClass));
+        var properties = analyzer.GetProperties();
+
+        Assert.Contains("Property", properties);
+    }
+
+    [Fact]
+    public void HasAttribute_ReturnsTrueForAttributedClass()
+    {
+        var analyzer = new ClassAnalyzer(typeof(AttributedClass));
+
+        Assert.True(analyzer.HasAttribute<SerializableAttribute>());
+    }
+
+    [Fact]
+    public void GetMethodParams_ReturnsReturnTypeAndParameterInfo()
+    {
+        var analyzer = new ClassAnalyzer(typeof(TestClass));
+        var methodParams = analyzer.GetMethodParams("Add").ToList();
+
+        Assert.Equal(3, methodParams.Count);
+        Assert.Equal("System.Int32", methodParams[0]);
+        Assert.Equal("System.Int32 a", methodParams[1]);
+        Assert.Equal("System.Int32 b", methodParams[2]);
+    }
+
+    [Fact]
+    public void Constructor_NullType_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => new ClassAnalyzer(null!));
+    }
+    
+    [Fact]
+    public void GetMethodParams_NonExistentMethod_ReturnsEmpty()
+    {
+        var analyzer = new ClassAnalyzer(typeof(TestClass));
+        var result = analyzer.GetMethodParams("NonExistentMethod").ToList();
+        
+        Assert.Empty(result);
+    }
+    
+    [Fact]
+    public void GetMethodParams_MethodWithoutParameters_ReturnsOnlyReturnType()
+    {
+        var analyzer = new ClassAnalyzer(typeof(TestClass));
+        var result = analyzer.GetMethodParams("Method").ToList();
+        
+        Assert.Single(result);
+        Assert.Equal("System.Void", result[0]);
+    }
+    
+    [Fact]
+    public void HasAttribute_NoAttribute_ReturnsFalse()
+    {
+        var analyzer = new ClassAnalyzer(typeof(TestClass));
+        
+        Assert.False(analyzer.HasAttribute<SerializableAttribute>());
+    }
+}
